@@ -1,7 +1,7 @@
 
 
 
-
+import { assert } from "typexpe-commons/src/common_sv.mjs";
 
 
 
@@ -26,7 +26,7 @@ const exec = (
   /**
    * 
    * @param {String} code
-   * @param {{ compilerOptions ?: { onEncounteringZeroCodeSrcText ?: (srcTree: TypicalSrcTreeRepr ) => ({ altReturnValue: any } | null ) } }} [options]
+   * @param {{ compilerOptions ?: { onEncounteringZeroCodeSrcText ?: (srcTree: (Exclude<TypicalSrcTreeRepr, { mainFileSrcText : (null) } >) ) => ({ altReturnValue: any } | null ) } }} [options]
    * 
    * @return {{ returnValue: any, } }
    * @throws {NoCodeInSrcTextException }
@@ -58,6 +58,8 @@ const exec = (
     return (/** @return {ReturnType<typeof execImpl> } */ function compileAndRunImpl() {
       ;
 
+      assert(srcTree.mainModulePath) ;
+
       const code = srcTree.mainFileSrcText ;
 
       if (code.match(/^[\s]*$/) ) {
@@ -79,6 +81,7 @@ export { exec } ;
 import { getFromSnippetAsSingleFileSourceTree, } from "typexpe-compiler-fwcore/src/srcFileTree.mjs";
 
 import {
+  // @ts-ignore
   TypicalSrcTreeRepr,
 } from "typexpe-compiler-fwcore/src/srcFileTree.mjs";
 
