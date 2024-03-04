@@ -27,4 +27,8 @@
    "workspaces": [
       "packages/*"
    ]
+   ,
+   "scripts": {
+      "typexpe-repl-run": "node .\\packages\\typexpe-cli\\index.mjs"
+   }
 }
