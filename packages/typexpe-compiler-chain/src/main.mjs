@@ -5,7 +5,7 @@
 
 
 
-export { TypeError, SyntaxError, NoCodeInSrcTextException, exec, } from "./quickStringEval.mjs" ;
+export { TypeError, SyntaxError, NoCodeInSrcTextException, execAsync, } from "./quickStringEval.mjs" ;
 
 
 

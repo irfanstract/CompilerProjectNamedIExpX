@@ -10,7 +10,7 @@
  * expects that
  * the given {@link RegExp} `x1` (expected to be non-`global`) matches the {@link String string} `x`'s head
  * 
- * will return {@link EXPC_HEA_NEGATIVE} on negative ;
+ * will return {@link expcHeaNegative} on negative ;
  * if positive, will return a struct describing all the analyses
  * 
  * the returned struct:
@@ -39,11 +39,11 @@ const expectHead = /** @satisfies {(x: String, x1: RegExp ) => Object } */ (...[
       } ;
     }
   }
-  return EXPC_HEA_NEGATIVE ;
+  return expcHeaNegative ;
 } ;
 
 /** {@link expectHead} */
-const EXPC_HEA_NEGATIVE = false ;
+const expcHeaNegative = false ;
 
 export { expectHead, } ;
 

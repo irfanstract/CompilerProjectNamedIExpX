@@ -46,10 +46,10 @@ const spclEvalImpl = /** @type {(...args: (Parameters<REPL.ReplOptions["eval"]> 
 
   // throw new REPL.Recoverable(new TypeError(`TODO Interactive REPL`) ) ;
   // throw new Error(`TODO Interactive REPL`) ;
-  const { returnValue, } = (() => {
+  const { returnValue, } = await (async () => {
     try {
       return (
-        (console["log"]({ code, })  , TYPEXPE.exec(code ) )
+        (console["log"]({ code, })  , await TYPEXPE.execAsync(code ) )
       ) ;
     } catch (z) {
       if (z instanceof TYPEXPE.NoCodeInSrcTextException ) {

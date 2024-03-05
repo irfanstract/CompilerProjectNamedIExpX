@@ -27,6 +27,26 @@ export { iterateNonNull, isNonNull, } ;
 
 
 
+/**
+ * @class
+ * @template {{}} A
+ */
+function Deferred()
+{
+  this.out = (new Promise(/** @param {(x: A) => void } resolve */ (resolve, reject) => {
+    this.resolve = resolve ;
+    this.reject = reject ;
+  }) ) ;
+
+  /** @type {(x: A) => void } */
+  this.resolve ;
+}
+
+export { Deferred, } ;
+
+
+
+
 
 
 

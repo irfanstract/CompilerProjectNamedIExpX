@@ -22,17 +22,17 @@ export { PostCompiledCodeError, NoCodeInSrcTextException, } ;
 
 
 
-const exec = (
+const execAsync = (
   /**
    * 
    * @param {String} code
    * @param {{ compilerOptions ?: { onEncounteringZeroCodeSrcText ?: (srcTree: (Exclude<TypicalSrcTreeRepr, { mainFileSrcText : (null) } >) ) => ({ altReturnValue: any } | null ) } }} [options]
    * 
-   * @return {{ returnValue: any, } }
+   * @return {Promise<{ returnValue: any, }> }
    * @throws {NoCodeInSrcTextException }
    * 
    */
-  function execImpl(code, options = {} )
+  async function execImpl(code, options = {} )
   {
     ;
 
@@ -55,7 +55,7 @@ const exec = (
   
     console["log"](`evaluating src-tree`, { srcTree, } ) ;
 
-    return (/** @return {ReturnType<typeof execImpl> } */ function compileAndRunImpl() {
+    return await (/** @return {Promise<ReturnType<typeof execImpl>> } */ async function compileAndRunImpl() {
       ;
 
       assert(srcTree.mainModulePath) ;
@@ -68,13 +68,28 @@ const exec = (
           return { returnValue: r.altReturnValue } ;
         }
       }
+
+      if (1) {
+        const jb = startCompilerRunOnSrcTree(srcTree) ;
+        const { finished, } = await jb.pr.out ;
+        if (finished)
+        {
+          return {
+            returnValue: null ,
+          } ;
+        }
+      }
   
       throw new TypeError(`TODO execImpl of code ${JSON.stringify(code) } `) ;
     } )() ;
   }
 ) ;
 
-export { exec } ;
+export { execAsync, } ;
+
+
+
+import { startCompilerRunOnSrcTree } from "./compilerJob.mjs";
 
 
 
