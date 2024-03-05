@@ -13,6 +13,10 @@ import {
 
 
 
+import { asyncify } from "../../typexpe-jscompiler/src/tsp.mjs";
+
+
+
 
 
 
@@ -38,15 +42,40 @@ const startCompilerRunOnSrcTree = /** @satisfies {(x: TypicalSrcTreeRepr ) => Ob
       ;
       R :
       {
-        LOOP:
-        for (const _ of "01234" ) {
-          if (abortpoint.signal.aborted) {
-            ;
-            enlog(`receiving abort-instru ; terminating early`) ;
-            break R ;
+        ;
+
+        const runChunkCompileTask = () => {} ;
+
+        const runFinalCompileTask = () => {
+          ;
+          const sfm = (
+            Object.entries(x.srcFileMap )
+            .map(([srcPath, fullSrcText]) => ({
+              srcPath, fullSrcText ,
+            }) )
+          ) ;
+          for (const { fullSrcText, srcPath, } of sfm )
+          {
+            const objc = asyncify(fullSrcText ) ;
+            const objCode = objc.code.join(" ") ;
+            console["log"]({ srcPath, fullSrcText, objCode, } ) ;
           }
-          await ((t) => new Promise(resolve => setTimeout(resolve, t ) ) )(1.8 * 1000 ) ;
-          enlog(`still compiling.`) ;
+        } ;
+
+        {
+          LOOP:
+          for (const _ of "0123" ) {
+            if (abortpoint.signal.aborted) {
+              ;
+              enlog(`receiving abort-instru ; terminating early`) ;
+              break R ;
+            }
+            await ((t) => new Promise(resolve => setTimeout(resolve, t ) ) )(1.8 * 1000 ) ;
+            enlog(`still compiling.`) ;
+            runChunkCompileTask() ;
+          }
+
+          runFinalCompileTask() ;
         }
   
         (finished = true) , enlog(`successful.`) ;

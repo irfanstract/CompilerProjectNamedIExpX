@@ -2,6 +2,8 @@
 
 import { pathToFileURL, } from 'node:url' ;
 
+import { isMainModuleImportMeta } from 'typexpe-commons/src/isImportMetaObjForMainModule.mjs';
+
 import { startReadEvalLoop, runReadEvalLoop, } from './src/cli-repl.mjs';
 
 
@@ -12,7 +14,7 @@ import { startReadEvalLoop, runReadEvalLoop, } from './src/cli-repl.mjs';
 // TODO
 if ((
   /* whether this is being run as the main module */
-  pathToFileURL(process.argv[1]).href === import.meta.url
+  isMainModuleImportMeta(import.meta )
 )) {
   ;
   console.warn(`'typexpe-cli' invoked as main module`) ;
