@@ -9,6 +9,13 @@
 
 
 
+declare type IKeyIn<out RT extends {}> = keyof RT ;
+
+declare type IValueOf<out RT extends {}> = RT[keyof RT] ;
+
+
+
+
 
 declare type IRepeatedString1<E> = `${E}` ;
 

@@ -8,7 +8,7 @@
 
 
 
-/** @typedef {IOP_ALL_APPLIED_COMB<"@" | IRepeatedString2<Extract<SupportedOperatorTokenElement, SupportedOperatorTokenElement_NOMORETHATTWOTIMES > > | IRepeatedString3<Exclude<SupportedOperatorTokenElement, SupportedOperatorTokenElement_NOMORETHATTWOTIMES > > > } SupportedOperatorToken */
+/** @typedef {IOP_ALL_APPLIED_COMB<"@" | Exclude<IRepeatedString2<Extract<SupportedOperatorTokenElement, SupportedOperatorTokenElement_NOMORETHATTWOTIMES > > | IRepeatedString3<Exclude<SupportedOperatorTokenElement, SupportedOperatorTokenElement_NOMORETHATTWOTIMES > > , `${"||" | "&&" | "^^" }${SupportedOperatorTokenElement }` > > } SupportedOperatorToken */
 const SupportedOperatorToken = {} ;
 
 /** @typedef {("=" | ":" | ("?" | "!") | ( "+" | "-" | "~") | ("<" | ">") | "%" | "*" | "&" | "^" | ("/" | "|" | "\\") ) } SupportedOperatorTokenElement */
@@ -65,13 +65,41 @@ const SupportedOperatorToken = {} ;
 //  */
 
 
-
-
-
-
-
-
 export { SupportedOperatorToken, } ;
+
+
+
+
+
+
+/**
+ * infix operator which is both commutative and associative (also called "semigroup")
+ * 
+ * @enum {IValueOf<typeof KeSupportedCommutativeInfixOp> }
+ */
+export const KeSupportedCommutativeInfixOp = /** @type {const} */ ({
+  ADDITIVE_INVERSION: "-" ,
+  ADDITION: "+" ,
+  MULTIPLICATION: "*",
+  EQUIVALENCE: "==",
+  SAMENESS: "is",
+  NONEQUIVALENCE: "not_==",
+  LESSTHANNESS_EXCL: "<" ,
+  LESSTHANNESS_INCL: "<=" ,
+  SET_UNION: "c_|" ,
+  SET_INTERSECTION: "c_&" ,
+  SET_DISJOINTNESS: "c_^" ,
+  // GRAPHICAL_TRANSPOSITION: "Trpof" ,
+  // GRAPHICAL_REVERSE: "reverse_of" ,
+  IDENTITY_CONJUNCTION: "&" ,
+  IDENTITY_ALTERNATION: "|" ,
+}) ;
+
+/** @typedef {IOP_ALL_APPLIED_COMB<KeSupportedCommutativeInfixOp> } KeSupportedCommutativeInfixOpPlus */
+const KeSupportedCommutativeInfixOpPlus = {} ;
+
+export { KeSupportedCommutativeInfixOpPlus, } ;
+
 
 
 

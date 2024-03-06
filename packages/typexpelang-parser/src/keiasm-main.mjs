@@ -57,7 +57,7 @@ export class KeAsymmetricOpSystem extends KeAbstractInfixOpAlikeSystem
     super() ;
     /** @type {readonly [SupportedInfixOperand, SupportedInfixOperand] } */
     this.constituents ;
-    /** @type {SupportedOperatorToken } */
+    /** @type {Exclude<SupportedOperatorToken, KeSupportedCommutativeInfixOpPlus> } */
     this.operator ;
     /** @type {SupportedInfixOperand } */
     this.product ;
@@ -66,19 +66,15 @@ export class KeAsymmetricOpSystem extends KeAbstractInfixOpAlikeSystem
 
 /** @typedef {KeLocalVariableRef | KeTermRef } SupportedInfixOperand */
 
-/**
- * @enum {string & { _t ?: any } }
- */
-export const KeSupportedCommutativeInfixOp = /** @type {const} */ ({
-  ADDITION: "+" ,
-  MULTIPLICATION: "*",
-  CONSTITUENTAL_UNION: "c_|" ,
-  CONSTITUENTAL_INTERSECTION: "c_&" ,
-}) ;
-
 import {
   // @ts-ignore
   SupportedOperatorToken ,
+} from "./keiasm-operators.mjs";
+
+import {
+  KeSupportedCommutativeInfixOp ,
+  // @ts-ignore
+  KeSupportedCommutativeInfixOpPlus ,
 } from "./keiasm-operators.mjs";
 
 
