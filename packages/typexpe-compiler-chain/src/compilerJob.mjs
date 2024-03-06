@@ -11,6 +11,8 @@ import {
   TypicalSrcTreeRepr,
 } from "typexpe-compiler-fwcore/src/srcFileTree.mjs";
 
+import TS from "typescript" ;
+
 
 
 import { asyncify } from "../../typexpe-jscompiler/src/tsp.mjs";
@@ -56,8 +58,7 @@ const startCompilerRunOnSrcTree = /** @satisfies {(x: TypicalSrcTreeRepr ) => Ob
           ) ;
           for (const { fullSrcText, srcPath, } of sfm )
           {
-            const objc = asyncify(fullSrcText ) ;
-            const objCode = objc.code.join(" ") ;
+            const objCode = asyncify(fullSrcText ) ;
             console["log"]({ srcPath, fullSrcText, objCode, } ) ;
           }
         } ;
