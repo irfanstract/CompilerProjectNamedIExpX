@@ -69,14 +69,21 @@ export const checkSensibleCalleeRef = /** @satisfies {(x: TS.Expression, options
 } ;
 
 /**
- * fix {@link Reflect.apply broken function-ref `some.doOpcode1` },
- * by rewriting it into `(...args) => some.doOpcode1(...args)` or `(...args) => new some.doOpcode1(...args)`
+ * attempt to
+ * fix broken function-ref(s) (for example, {@link Reflect.apply automatic receiver-insertion only happens for member-functions directly invoked like `receiver.meth(...)`, but will go away when aliased like `return receiver.meth` } ) by
+ * returning the rewritten expr (for the above "missing receiver" case, `(...args) => receiver.meth(...args)` )
+ * 
+ * does not {@link TS.factory.updateBlock mutate } the {@link TS.Node} passed.
+ * 
+ * TODO support for `new`
  * 
  */
-export const healPseudoCurriedFunctionRef = /** @type {(x: TS.Expression, options: { asConstructor: Boolean | null, } ) => TS.Expression } */ (...[calleeRef, options ]) => {
+export const healPseudoCurriedFunctionRef = /** @type {(x: TS.Expression, options: ({ asConstructor: true, asAsync?: false, asGenerator?: false, } | { asConstructor: false | null, asAsync: Boolean, asGenerator: Boolean, }) ) => TS.Expression } */ (...[calleeRef, optionsArg ]) => {
   ;
 
-  const { asConstructor, } = options ;
+  const options = (optionsArg.asConstructor ? /** @type {const } */ ({ inAwaitCtx: false, inGenerator: false, ...optionsArg }) : optionsArg ) ;
+
+  const { asConstructor, asAsync: inAwaitCtx, asGenerator: inGenerator, } = options ;
 
   if (0) {
     ;
@@ -84,6 +91,9 @@ export const healPseudoCurriedFunctionRef = /** @type {(x: TS.Expression, option
     { return calleeRef ; }
   }
   
+  /**
+   * early-checking
+   */
   checkSensibleCalleeRef(calleeRef, { asConstructor: asConstructor ?? false, } ) ;
 
   /**
@@ -98,16 +108,19 @@ export const healPseudoCurriedFunctionRef = /** @type {(x: TS.Expression, option
   { return calleeRef ; }
 
   /**
-   * `(...args)`-ing another `doOp(...args)`
-   * will unconditionally go with unset `this`-arg ;
-   * there's no point doing this here
+   * in the uncommon case of `meth(...<arg-list-1>)(...<arg-list-2>)`,
+   * by the spec,
+   * the second `[[Call]]` (ie one with `<arg-list-2>`)
+   * will unconditionally go without `this`-arg ;
+   * there's no point playing with that here
    * 
    */
   if (TS.isCallExpression(calleeRef) )
   { return calleeRef ; }
 
   /**
-   * {@link isCommaListExpression }, {@link isConditionalExpression }, and any other holo-morphic examples
+   * in case of {@link isCommaListExpression }, {@link isConditionalExpression }, and any other homo-morphic examples,
+   * let's just move to the operands themselves
    * 
    */
   {
@@ -117,7 +130,7 @@ export const healPseudoCurriedFunctionRef = /** @type {(x: TS.Expression, option
         TS.factory.createCommaListExpression((
           calleeRef.elements
           .toReversed()
-          .map((e, i) => ((i === 0 ) ? healPseudoCurriedFunctionRef(e, options ) : e) )
+          .map((e, i) => ((i === 0 ) ? healPseudoCurriedFunctionRef(e, optionsArg ) : e) )
           .toReversed()
         ))
       ) ;
@@ -127,32 +140,57 @@ export const healPseudoCurriedFunctionRef = /** @type {(x: TS.Expression, option
     {
       return (
         TS.factory.createConditionalExpression(calleeRef.condition, undefined, (
-          healPseudoCurriedFunctionRef(calleeRef.whenTrue, options )
+          healPseudoCurriedFunctionRef(calleeRef.whenTrue, optionsArg )
         ), undefined, (
-          healPseudoCurriedFunctionRef(calleeRef.whenFalse, options)
+          healPseudoCurriedFunctionRef(calleeRef.whenFalse, optionsArg)
         ))
       ) ;
     }
   }
   
   // TODO
+  /**
+   * in general, including simple "unqualified" `fetch(...)` and `new UInt8Array(bufSize)` and `setTimeout(callbk, tMillis)`,
+   * let's just return properly-rewritten expr
+   * 
+   */
   {
     const argsBName = "args" ;
-  
+
     return (
-      TS.factory.createArrowFunction([], undefined, [(
-        TS.factory.createParameterDeclaration([], TS.factory.createToken(TS.SyntaxKind.DotDotDotToken) , argsBName, undefined, undefined, undefined )
-      )] , undefined, undefined, (
-        (
-          TS.factory[/** @satisfies {keyof typeof TS.factory } */ (
-            (asConstructor === true ) ? "createNewExpression"  :
-            (asConstructor === false) ? "createCallExpression" :
-            throwTypeError(`. ${JSON.stringify({ asConstructor, }) }` )
-          ) ](calleeRef, undefined, [(
-            TS.factory.createSpreadElement(TS.factory.createIdentifier(argsBName ) )
-          )] )
-        )
-      ) )
+      //
+      (asConstructor === true) ?
+      calleeRef
+      :
+      (asConstructor === false) ?
+      (
+        TS.factory.createArrowFunction([
+          ...(inAwaitCtx ? [TS.factory.createModifier(TS.SyntaxKind.AsyncKeyword) ] : [] )
+          ,
+          ...(inGenerator ? [ (
+            // TODO
+            throwTypeError(`TODO`)
+          ) ] : [] )
+          ,
+        ], undefined, [(
+          TS.factory.createParameterDeclaration([], TS.factory.createToken(TS.SyntaxKind.DotDotDotToken) , argsBName, undefined, undefined, undefined )
+        )] , undefined, undefined, (
+          (() => {
+            const mainExpr = (
+              TS.factory.createCallExpression(calleeRef, undefined, [(
+                TS.factory.createSpreadElement(TS.factory.createIdentifier(argsBName ) )
+              )] )
+            ) ;
+            /** @type {TS.Expression} */ let e = mainExpr ;
+            0 && (e = TS.factory.createPropertyAccessExpression(TS.factory.createArrayLiteralExpression([e]) , "0" ) ) ;
+            0 && (inAwaitCtx  && (e = TS.factory.createAwaitExpression(e) ) ) ;
+            0 && (inGenerator && (e = TS.factory.createYieldExpression(TS.factory.createToken(TS.SyntaxKind.AsteriskToken) , e) ) ) ;
+            return e ;
+          } )()
+        ) )
+      )
+      :
+      throwTypeError(`. ${JSON.stringify({ asConstructor, calleeRef }) }` )
     ) ;
   }
 } ;

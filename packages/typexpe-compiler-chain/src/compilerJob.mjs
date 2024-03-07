@@ -60,6 +60,18 @@ const startCompilerRunOnSrcTree = /** @satisfies {(x: TypicalSrcTreeRepr ) => Ob
           {
             const objCode = awaitify(fullSrcText ) ;
             console["log"]({ srcPath, fullSrcText, objCode, } ) ;
+            const finalObjCodeCompileTask = (
+              (async () => (
+                Function(`return (async () => { ${(objCode) } ; } ) ;`)
+              ) )()
+              .then(fnc => fnc() )
+              .catch(z => (console["error"](`malformed bytecode ; closing the enclosing session. \n please report to our devs!`), console["info"](z) , setImmediate(() => process.exit(107) ) ) )
+            ) ;
+            (
+              finalObjCodeCompileTask
+              .then(fnc => fnc() )
+              .catch(r => (console["info"](`exception in code run`), console["info"](r) ) )
+            ) ;
           }
         } ;
 

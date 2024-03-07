@@ -103,7 +103,10 @@ const awaitifyAst = (() => {
         return (
           TS.factory.createCommaListExpression([
             ...(0 ? [IF_TIRED_THEN_AWAIT] : [] ) ,
-            adaptedCreateCallExpression(x.expression , x.typeArguments, x.arguments, { asConstructor: false, } ) ,
+            adaptedCreateCallExpression(x.expression , x.typeArguments, x.arguments, { asConstructor: false, inGenerator: (
+              // TODO
+              false
+            ) } ) ,
           ])
         ) ;
       }
@@ -233,20 +236,28 @@ const awaitifyAst = (() => {
    * 
    */
   // TS.factory.createCallExpression
-  const adaptedCreateCallExpression = /** @param {[...Parameters<typeof TS.factory.createCallExpression > , { asConstructor: Boolean, } ] } args */ (...[calleeRef, typeArgs, argsLiteral, { asConstructor, } ]) => {
+  const adaptedCreateCallExpression = /** @param {[...Parameters<typeof TS.factory.createCallExpression > , { asConstructor: Boolean, inGenerator: Boolean } ] } args */ (...[calleeRef, typeArgs, argsLiteral, { asConstructor, inGenerator, } ]) => {
+    ;
+    const fixedMainCallExpr = (
+      TS.factory.createAwaitExpression((
+        TS.factory.createPropertyAccessExpression((
+          TS.factory.createCallExpression((
+            mockupIntrinsicCallDispatchingMethod
+          ) , typeArgs, [(
+            healPseudoCurriedFunctionRef(
+              asyncifyTermImpl(calleeRef ),
+              asConstructor ? { asConstructor, } : { asConstructor, asAsync: false, asGenerator: inGenerator, } )
+          ), ...(
+            [...(argsLiteral ?? [])]
+            .map(e => asyncifyTermImpl(e) )
+          )] )
+        ) , "promise" )
+      ))
+    ) ;
     return (
       TS.factory.createCommaListExpression([
         ...(0 ? [IF_TIRED_THEN_AWAIT] : [] ) ,
-        TS.factory.createAwaitExpression((
-          TS.factory.createPropertyAccessExpression((
-            TS.factory.createCallExpression((
-              mockupIntrinsicCallDispatchingMethod
-            ) , typeArgs, [healPseudoCurriedFunctionRef(asyncifyTermImpl(calleeRef ), { asConstructor, } ), ...(
-              [...(argsLiteral ?? [])]
-              .map(e => asyncifyTermImpl(e) )
-            )] )
-          ) , "promise" )
-        )) ,
+        fixedMainCallExpr ,
       ])
     ) ;
   } ;
