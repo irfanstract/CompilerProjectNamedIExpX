@@ -35,12 +35,149 @@ const awaitifyAst = (() => {
   /** @typedef {TS.Node } SpclObjCode */
 
   const checkSpclObjcBeingLvl = /** @type {<const l extends SpclObjCodeHeavywt["lvl"]>(x: SpclObjCodeHeavywt, expectedLv: l) => asserts x is Extract<SpclObjCodeHeavywt, { lvl: l }> } */ (c, expectedLv) => { (c.lvl === expectedLv ) || throwTypeError(JSON.stringify(c) ) ; } ;
+
+  /**
+   * unary-expression(s), including `await` and `yield`
+   * 
+   * @type {<const T extends (TS.YieldExpression | TS.AwaitExpression | TS.UnaryExpression )>(x: T, options?: {} ) => TS.Expression }
+   */
+  function asyncifyUnaryExpressionImpl(...[x, {} = {}])
+  {
+    ;
+    
+    if (TS.isYieldExpression(x) )
+    {
+      return (
+        x.asteriskToken ?
+        TS.factory.createYieldExpression(x.asteriskToken, (
+          asyncifyTermImpl(x.expression ?? throwTypeError(`unexpected bulk-yield without operand.`) )
+        ))
+        :
+        TS.factory.createYieldExpression(undefined, (
+          x.expression && asyncifyTermImpl(x.expression )
+        ))
+      ) ;
+    }
+    if (TS.isAwaitExpression(x) )
+    {
+      return (
+        TS.factory.createAwaitExpression((
+          asyncifyTermImpl(x.expression )
+        ))
+      ) ;
+    }
+    if (TS.isPrefixUnaryExpression(x) )
+    {
+      return (
+        TS.factory.createPrefixUnaryExpression(x.operator, (
+          asyncifyTermImpl(x.operand )
+        ))
+      ) ;
+    }
+    if (TS.isPostfixUnaryExpression(x) )
+    {
+      return (
+        TS.factory.createPostfixUnaryExpression((
+          asyncifyTermImpl(x.operand )
+        ), x.operator )
+      ) ;
+    }
+
+    return x ;
+  }
+
+  /**
+   * 
+   * @type {<const T extends TS.PropertyAccessExpression | TS.ElementAccessExpression>(x: T, options?: {} ) => TS.Expression }
+   */
+  function asyncifyFieldValueReference(...[x, {} = {}])
+  {
+    return (
+      asyncifyTermImplOutermost((
+        asyncifyFieldValueReference1(x)
+      ))
+    ) ;
+  }
+
+  /**
+   * {@link asyncifyFieldValueReference} without the outermost {@link asyncifyTermImplOutermost}
+   * 
+   * @type {<const T extends TS.PropertyAccessExpression | TS.ElementAccessExpression>(x: T, options?: {} ) => TS.Expression }
+   */
+  function asyncifyFieldValueReference1(...[x, {} = {}])
+  {
+    ;
+    
+    const { expression: lhs0, } = x ;
+
+    const lhs2 = asyncifyTermImpl(lhs0) ;
+  
+    if (TS.isPropertyAccessExpression(x) )
+    {
+      const { name: rhs0, } = x ;
+  
+      const rhs2 = (
+        rhs0
+      ) ;
+  
+      return (
+        TS.factory.createPropertyAccessExpression(lhs2, rhs2 )
+      ) ;
+    }
+    
+    if (TS.isElementAccessExpression(x) )
+    {
+      const { argumentExpression: rhs0, } = x ;
+  
+      const rhs2 = (
+        asyncifyTermImpl(rhs0)
+      ) ;
+  
+      return (
+        TS.factory.createElementAccessExpression(lhs2, rhs2 )
+      ) ;
+    }
+
+    return x ;
+  }
+
+  /**
+   * variant of {@link asyncifyTermImpl } specifically intended for `[[Call]]`s :
+   * ```
+   * s.t.u.defineVars(3)
+   * // treated as:
+   * (s.t.u ).defineVars<with!!>(3)
+   * 
+   * [s, t].u.defineVars(3)
+   * // treated as:
+   * ([s, t].u ).defineVars<with!!>(3)
+   * ```
+   * 
+   * TODO
+   * 
+   * @type {<const T extends TS.Expression>(x: T, options?: {} ) => TS.Expression }
+   */
+  function asyncifyDispatchedFunctionRefImpl(...[x, {} = {}])
+  {
+    ;
+
+    if (TS.isPropertyAccessExpression(x) || TS.isElementAccessExpression(x) )
+    {
+      return (
+        asyncifyFieldValueReference1(x)
+      ) ;
+    }
+    return (
+      asyncifyTermImpl(x)
+    ) ;
+  }
   
   /**
    * 
    * @type {<const T extends TS.Expression>(x: T, options?: {} ) => TS.Expression }
    */
-  function asyncifyTermImpl(...[x, {} = {}]) {
+  function asyncifyTermImpl(...[x, {} = {}])
+  {
     ;
 
     {
@@ -130,13 +267,31 @@ const awaitifyAst = (() => {
         ) ;
       }
 
-      if (TS.isFunctionExpression(x) || TS.isArrowFunction(x) ) {
-        ;
+      if (TS.isFunctionExpression(x) || TS.isArrowFunction(x) )
+      {
         return (
-          asyncifyFunctionTerm(x)
+          asyncifyFunctionLiteralTerm(x)
         ) ;
       }
 
+      if (TS.isPropertyAccessExpression(x) || TS.isElementAccessExpression(x) )
+      {
+        return asyncifyFieldValueReference(x) ;
+      }
+
+      if ((
+        false
+        || TS.isYieldExpression(x)
+        || TS.isAwaitExpression(x)
+        || TS.isPrefixUnaryExpression(x)
+        || TS.isPostfixUnaryExpression(x)
+      ) )
+      {
+        return (
+          asyncifyUnaryExpressionImpl(x)
+        ) ;
+      }
+      
       if (TS.isSpreadElement(x) )
       {
         return (
@@ -147,10 +302,7 @@ const awaitifyAst = (() => {
       }
 
       return (
-        TS.factory.createCommaListExpression([
-          IF_TIRED_THEN_AWAIT ,
-          x ,
-        ])
+        asyncifyTermImplOutermost(x)
       ) ;
     }
 
@@ -162,17 +314,33 @@ const awaitifyAst = (() => {
 
     return x ;
   }
+  
+  /**
+   * {@link asyncifyTermImplOutermost }
+   * simply returns `(await nextMicrotask(), ${x } )` without even studying the operand.
+   * 
+   * @type {<const T extends TS.Expression>(x: T, options?: {} ) => TS.Expression }
+   */
+  function asyncifyTermImplOutermost(...[x, {} = {}])
+  {
+    return (
+      TS.factory.createCommaListExpression([
+        IF_TIRED_THEN_AWAIT ,
+        x ,
+      ])
+    ) ;
+  }
 
   /**
    * 
    * @type {<const T extends (TS.FunctionExpression | TS.ArrowFunction)>(x: T, options?: {} ) => TS.Expression }
    */
-  function asyncifyFunctionTerm(...[x, {} = {}])
+  function asyncifyFunctionLiteralTerm(...[x, {} = {}])
   {
     ;
 
     const newModifiersSet = (
-      x.modifiers && [...x.modifiers, TS.factory.createModifier(TS.SyntaxKind.AsyncKeyword ) ]
+      [...(x.modifiers || [] ), TS.factory.createModifier(TS.SyntaxKind.AsyncKeyword ) ]
     );
 
     const newBody = (
@@ -190,6 +358,35 @@ const awaitifyAst = (() => {
       ))] )
     ) ;
   }
+
+  const ftwtNamespaceImpl = /** @type {const } */ ({
+    get currentThreadTired() { return false ; } ,
+    nextMicrotask: () => /** @satisfies {Promise<unknown> } */ (new Promise(resolve => setImmediate(resolve) )) ,
+    syncFunctionAlikeFromAsyncifiedFunctionLiteral: /** @satisfies {(x: Function) => Object } */ (applyAsyncImpl) => {
+      // TODO
+      return {
+        applyAsync: applyAsyncImpl ,
+      } ;
+    } ,
+    startDispatchOf: /** @satisfies {<A extends ReadonlyArray<unknown>, const R>(x: FtwtFUnction<A, R> , ...args1: A ) => Object } */ (impl, ...args) => {
+      // TODO
+      const pr = ("applyAsync" in impl ? impl.applyAsync : impl )(...args) ;
+      return {
+        promise: pr ,
+      } ;
+    } ,
+  }) ;
+  /**
+   * @typedef {{ applyAsync: (...args: A) => Promise<R> } | ((...args: A) => Promise<R> ) } FtwtFUnction
+   * 
+   * @template {ReadonlyArray<unknown>} A
+   * @template R
+   * 
+   */
+
+  // globalThis.Function.TechnicalAwaitOps = ftwtNamespaceImpl ;
+  // Object.assign(globalThis.Function, { TechnicalAwaitOps: ftwtNamespaceImpl, } ) ;
+  (/** @type {{ TechnicalAwaitOps ?: Required<{ value?: unknown }>["value"] }} */ (globalThis.Function) ).TechnicalAwaitOps ??= ftwtNamespaceImpl ;
     
   /**
    * reference to an ad-hoc name-space for these stuffs
@@ -245,7 +442,7 @@ const awaitifyAst = (() => {
             mockupIntrinsicCallDispatchingMethod
           ) , typeArgs, [(
             healPseudoCurriedFunctionRef(
-              asyncifyTermImpl(calleeRef ),
+              asyncifyDispatchedFunctionRefImpl(calleeRef ),
               asConstructor ? { asConstructor, } : { asConstructor, asAsync: false, asGenerator: inGenerator, } )
           ), ...(
             [...(argsLiteral ?? [])]

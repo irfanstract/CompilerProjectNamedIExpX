@@ -1,3 +1,15 @@
+const x = yield 5 ;
+const x = yield* 5 ;
+1 ? Object(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...[Math.max(5 + 5) ] ] ) : "3" ; (() => { console.log(new TypeError("Asyncification") ) ; } )() ; return Object("5 ms") ;
+1 ? Object(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...[Math.max(5 + 5) ] ] ) : "3" ; (() => { console.log(5) ; } )() ; return Object("5 ms") ;
+.exit
+1 ? Object(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...[Math.max(5 + 5) ] ] ) : "3" ; (() => { console.log(5) ; } )() ; return Object("5 ms") ;
+1 ? Object(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...[Math.max(5 + 5) ] ] ) : "3" ; return Object("5 ms") ;
+1 ? Object(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...Math.max(5 + 5) ] ) : "3" ; Object("5 ms") ;
+1 ? sleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : "3" ; sleep("5 ms") ;
+.exit
+1 ? sleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : "3" ; sleep("5 ms") ;
+1 ? sleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : 3 ;
 .exit
 1 ? sleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : 3 ;
 const x = var5 ;
@@ -15,16 +27,4 @@ const x = 5 ;
 1 ? sleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : 3 ;
 .exit
 1 ? sleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : 3 ;
-.exit
-1 ? sleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : 3 ;
-.exit
-1 ? sleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : 3 ;
-.exit
-1 ? sleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : 3 ;
-.exit
-1 ? sleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : 3 ;
-.exit
-1 ? sleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : 3 ;
-.exit
-1 ? sleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : 3 ;
-.exitleep(1 + 1 + 1, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : 3 ;[2 + 2, 3 + 3, 4 + 4, ...sum(5 + 5) ] ) : 3 ; sum(5 + 5) ) : 3 ;
+.exit, ...[2 + 2, 3 + 3, 4 + 4, ...window.sum(5 + 5) ] ) : 3 ;

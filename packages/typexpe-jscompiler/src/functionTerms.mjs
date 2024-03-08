@@ -13,7 +13,11 @@ import TS from "typescript" ;
 
 
 
-import { isBlockLike } from "./tsExtraSyntaxKinds.mjs";
+import {
+  isBlockLike,
+  isFieldOrItemValueAccess ,
+  getFieldOrItemValueAccessElements ,
+} from "./tsExtraSyntaxKinds.mjs";
 
 import { getSyntaxKindString } from "./tsExtraSyntaxKinds.mjs";
 
@@ -85,7 +89,7 @@ export const healPseudoCurriedFunctionRef = /** @type {(x: TS.Expression, option
 
   const { asConstructor, asAsync: inAwaitCtx, asGenerator: inGenerator, } = options ;
 
-  if (0) {
+  if (1) {
     ;
     if (TS.isIdentifier(calleeRef) )
     { return calleeRef ; }
@@ -147,7 +151,7 @@ export const healPseudoCurriedFunctionRef = /** @type {(x: TS.Expression, option
       ) ;
     }
   }
-  
+
   // TODO
   /**
    * in general, including simple "unqualified" `fetch(...)` and `new UInt8Array(bufSize)` and `setTimeout(callbk, tMillis)`,
@@ -157,6 +161,44 @@ export const healPseudoCurriedFunctionRef = /** @type {(x: TS.Expression, option
   {
     const argsBName = "args" ;
 
+    const mainVarargsDeclarShape = (
+      TS.factory.createParameterDeclaration([], TS.factory.createToken(TS.SyntaxKind.DotDotDotToken) , argsBName, undefined, undefined, undefined )
+    ) ;
+    const mainVarargsSpreadShape = (
+      TS.factory.createSpreadElement(TS.factory.createIdentifier(argsBName ) )
+    ) ;
+    
+    if (asConstructor === false)
+    {
+      if (isFieldOrItemValueAccess(calleeRef) )
+      {
+        const [actualReceiverRef, kRef ] = getFieldOrItemValueAccessElements(calleeRef) ;
+  
+        const recreivingBName = "receiver" ;
+  
+        const dispatcherFactoryLiteral = (
+          //
+          TS.factory.createArrowFunction([], undefined, [(
+            //
+            TS.factory.createParameterDeclaration([], undefined , recreivingBName, undefined, undefined, undefined )
+          ) ], undefined, undefined, (
+            //
+            TS.factory.createArrowFunction([], undefined, [mainVarargsDeclarShape], undefined, undefined, (
+              /* `receiver.m(...args)` */
+              TS.factory.createCallExpression((
+                TS.factory.createElementAccessExpression((
+                  TS.factory.createIdentifier(recreivingBName)
+                ) , kRef )
+              ), undefined, [mainVarargsSpreadShape,] )
+            ) )
+          ) )
+        ) ;
+        return (
+          TS.factory.createCallExpression(dispatcherFactoryLiteral, undefined, [actualReceiverRef] )
+        ) ;
+      }
+    }
+    
     return (
       //
       (asConstructor === true) ?
@@ -172,14 +214,10 @@ export const healPseudoCurriedFunctionRef = /** @type {(x: TS.Expression, option
             throwTypeError(`TODO`)
           ) ] : [] )
           ,
-        ], undefined, [(
-          TS.factory.createParameterDeclaration([], TS.factory.createToken(TS.SyntaxKind.DotDotDotToken) , argsBName, undefined, undefined, undefined )
-        )] , undefined, undefined, (
+        ], undefined, [mainVarargsDeclarShape] , undefined, undefined, (
           (() => {
             const mainExpr = (
-              TS.factory.createCallExpression(calleeRef, undefined, [(
-                TS.factory.createSpreadElement(TS.factory.createIdentifier(argsBName ) )
-              )] )
+              TS.factory.createCallExpression(calleeRef, undefined, [mainVarargsSpreadShape] )
             ) ;
             /** @type {TS.Expression} */ let e = mainExpr ;
             0 && (e = TS.factory.createPropertyAccessExpression(TS.factory.createArrayLiteralExpression([e]) , "0" ) ) ;

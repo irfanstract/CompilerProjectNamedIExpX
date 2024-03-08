@@ -56,28 +56,67 @@ const startCompilerRunOnSrcTree = /** @satisfies {(x: TypicalSrcTreeRepr ) => Ob
               srcPath, fullSrcText ,
             }) )
           ) ;
-          for (const { fullSrcText, srcPath, } of sfm )
+          const allCompiles = (
+            sfm
+            .map(opt => {
+              const { fullSrcText, srcPath, } = opt ;
+
+              //
+              const objCode = awaitify(fullSrcText ) ;
+              console["log"]({ srcPath, fullSrcText, objCode, } ) ;
+              const objCodeEvaluatedUnappliedPr = (
+                (async () => {
+                  try {
+                    ;
+                    return /** @type {() => ((...args: [] ) => Promise<any> ) } */ (
+                      Function(`return (async () => { ${(objCode) } ; } ) ;`)
+                    ) ;
+                  } catch (e) { return throwTypeError(`malformed bytecode: ${e }`, e ) ; }
+                } )()
+                .then(fnc => {
+                  try {
+                    return fnc() ;
+                  } catch (e) {
+                    return throwTypeError(`exception while extracting the described Function: ${e }`, e ) ;
+                  }
+                } )
+              ) ;
+
+              return ({
+                ... /** @satisfies {{ [k in keyof typeof opt]: any } } */ ({
+                  fullSrcText ,
+                  srcPath ,
+                }) ,
+                ... {
+                  //
+                  opt ,
+                  objCode ,
+                  objCodeEvaluatedUnappliedPr ,
+                }
+              }) ;
+            })
+          ) ;
+          for (const { fullSrcText, srcPath, objCode, objCodeEvaluatedUnappliedPr, } of allCompiles )
           {
-            const objCode = awaitify(fullSrcText ) ;
-            console["log"]({ srcPath, fullSrcText, objCode, } ) ;
-            const finalObjCodeCompileTask = (
-              (async () => (
-                Function(`return (async () => { ${(objCode) } ; } ) ;`)
-              ) )()
-              .then(fnc => fnc() )
-              .catch(z => (console["error"](`malformed bytecode ; closing the enclosing session. \n please report to our devs!`), console["info"](z) , setImmediate(() => process.exit(107) ) ) )
+            const objCodeEvaluatedUnappliedPr1 = (
+              objCodeEvaluatedUnappliedPr
+              .catch(z => {
+                (console["error"](`malformed bytecode ; closing the enclosing session. \n please report to our devs!`), 0 ? (console["info"](z) , setTimeout(() => throwTypeError(`exiting`, z), 0.3 * 1000 ) ) : (void 0, console["error"](z) ) ) ;
+                // throw new TypeError(`exec failed: ${z } `, z ) ;
+              } )
             ) ;
             (
-              finalObjCodeCompileTask
-              .then(fnc => fnc() )
+              objCodeEvaluatedUnappliedPr1
+              .then(fnc => fnc?.() )
               .catch(r => (console["info"](`exception in code run`), console["info"](r) ) )
+              .then(c => (console["info"](`done with value:`, c) , setImmediate(() => process.exit(0) ) ) )
             ) ;
           }
         } ;
 
         {
           LOOP:
-          for (const _ of "0123" ) {
+          for (const _ of "01" ) {
             if (abortpoint.signal.aborted) {
               ;
               enlog(`receiving abort-instru ; terminating early`) ;

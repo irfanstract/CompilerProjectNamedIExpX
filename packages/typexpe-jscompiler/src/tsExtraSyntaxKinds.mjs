@@ -34,6 +34,53 @@ const isBlockLike = /** @type {(x: TS.Statement | TS.Node) => x is TS.BlockLike 
 
 export { isBlockLike } ;
 
+const isFieldOrItemValueAccess = /** @type {(x: TS.Expression) => x is (TS.PropertyAccessExpression | TS.ElementAccessExpression) } */ (x) => (
+  TS.isPropertyAccessExpression(x)
+  || TS.isElementAccessExpression(x)
+) ;
+
+const getFieldOrItemValueAccessElements = /** @satisfies {(x: (TS.PropertyAccessExpression | TS.ElementAccessExpression) ) => [TS.Expression , TS.Expression ] } */ (x) => {
+  ;
+
+  const { expression: lhs0, } = x ;
+
+  //
+  if (TS.isPropertyAccessExpression(x) )
+  {
+    const { name: rhs0, } = x ;
+
+    if (rhs0.kind === TS.SyntaxKind.Identifier )
+    {
+      return (
+        [lhs0, TS.factory.createStringLiteral((
+          // TODO
+          rhs0.text
+        ) , false ) ]
+      ) ;
+    }
+    else {
+      return throwTypeError(`unsupported subscript-RHS ${getSyntaxKindString(rhs0.kind ) } (applied to receiver being ${getSyntaxKindString(lhs0.kind ) } ) `) ;
+    }
+  }
+
+  if (TS.isElementAccessExpression(x) )
+  {
+    const { argumentExpression: rhs0, } = x ;
+
+    return (
+      [lhs0, rhs0]
+    ) ;
+  }
+
+  return throwTypeError(`${getSyntaxKindString((
+    x
+    // @ts-ignore
+    .kind
+  )) }`) ;
+} ;
+
+export { isFieldOrItemValueAccess, getFieldOrItemValueAccessElements, } ;
+
 
 
 
