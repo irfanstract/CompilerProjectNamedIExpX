@@ -7,6 +7,8 @@
       "@types/node": "20.11.17"
       ,
       "@types/d3": "7.4.3"
+      ,
+      "@types/vscode": "^1.75.1"
    }
    ,
    "dependencies": {
@@ -15,6 +17,10 @@
       "lodash": "^4.17.21"
       ,
       "immutable": "^4.1.0"
+      ,
+		"vscode-languageserver": "^9.0.1"
+      ,
+		"vscode-languageserver-textdocument": "^1.0.11"
    }
    ,
    "exports": "./index.mjs"

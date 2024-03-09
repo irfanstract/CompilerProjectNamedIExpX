@@ -1,8 +1,12 @@
 
 
+import { reiterable } from 'typexpe-commons/src/common_sv1.mjs';
+
 import { pathToFileURL, } from 'node:url' ;
 
 import { isMainModuleImportMeta } from 'typexpe-commons/src/isImportMetaObjForMainModule.mjs';
+
+import { bashMainImpl } from './src/cli-main.mjs';
 
 import { startReadEvalLoop, runReadEvalLoop, } from './src/cli-repl.mjs';
 
@@ -18,9 +22,9 @@ if ((
 )) {
   ;
   console.warn(`'typexpe-cli' invoked as main module`) ;
-  console.warn(`['typexpe-cli'] evaluating 'startReadEvalLoop()'`) ;
+  0 && console.warn(`['typexpe-cli'] evaluating 'startReadEvalLoop()'`) ;
   ;
-  startReadEvalLoop() ;
+  bashMainImpl(process.argv.slice(2) ) ;
 }
 else {
   ;

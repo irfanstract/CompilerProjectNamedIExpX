@@ -64,14 +64,21 @@ const spclEvalImpl = /** @type {(...args: (Parameters<REPL.ReplOptions["eval"]> 
   } ;
 } ;
 
-
-
-
-
-
-
-
 export { runReadEvalLoop, startReadEvalLoop, } ;
+
+
+
+
+// TODO
+const bashReplImpl = /** @satisfies {(args: String[] ) => any } */ (args ) => {
+  ;
+
+  return (
+    startReadEvalLoop()
+  ) ;
+} ;
+
+export { bashReplImpl, } ;
 
 
 
