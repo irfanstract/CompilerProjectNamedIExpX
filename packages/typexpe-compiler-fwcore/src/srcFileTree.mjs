@@ -2,7 +2,7 @@
 
 import { throwTypeError } from "typexpe-commons/src/common_sv.mjs";
 
-
+import { blobFromUtf } from "typexpe-commons/src/utfCodec.mjs";
 
 
 
@@ -39,7 +39,7 @@ const getFromSnippetAsSingleFileSourceTree = /** @satisfies {(x: String) => Obje
 export { getFromSnippetAsSingleFileSourceTree } ;
 
 /**
- * {@link getFromUrlToStringMapAsSourceTree }
+ * {@link getFromUrlToStringMapAsSourceTree }. returns {@link TypicalPossiblyExecubleAppSrcTreeAnalysis }.
  * 
  */
 const getFromUrlToStringMapAsSourceTree = /** @satisfies {(srcs: Readonly<{ [k: String]: String }>, config: GFTSMConfig ) => Object } */ ((srcs, config) =>
@@ -47,7 +47,14 @@ const getFromUrlToStringMapAsSourceTree = /** @satisfies {(srcs: Readonly<{ [k: 
   const mainModulePath = config.mainModulePath ;
 
   return /** @type {const} */ ({
-    srcFileMap: srcs,
+    srcFileMap: (
+      Object.fromEntries(
+        Object.entries(srcs )
+        .map(([k, v0]) => /** @type {const } */ (
+          [k, blobFromUtf(v0) ]
+        ) )
+      )
+    ),
     ... (
       mainModulePath ?
       {
@@ -67,12 +74,38 @@ export { getFromUrlToStringMapAsSourceTree } ;
  */
 
 /**
- * @typedef {ReturnType<typeof getFromSnippetAsSingleFileSourceTree > } TypicalSrcTreeRepr
+ * FOR DEVS:
+ * avoid using `Extract` or `Pick` since Rename wouldn't properly update the string-literal(s) ;
+ * use `Exclude` or `Omit` instead
+ */
+
+/**
+ * @typedef {ReturnType<typeof getFromSnippetAsSingleFileSourceTree > } TypicalPossiblyExecubleAppSrcTreeAnalysis
  * 
  */
-const TypicalSrcTreeRepr = {} ;
+const TypicalPossiblyExecubleAppSrcTreeAnalysis = {} ;
 
-export { TypicalSrcTreeRepr } ;
+/**
+ * selection of {@link TypicalPossiblyExecubleAppSrcTreeAnalysis } which sets these fields to `null`
+ * 
+ * @typedef {Exclude<TypicalPossiblyExecubleAppSrcTreeAnalysis, { mainModulePath : {} } > } TypicalNonExecublesSrcTreeAnalysis
+ * 
+ */
+const TypicalNonExecublesSrcTreeAnalysis = {} ;
+
+/**
+ * a subset of fields of {@link TypicalNonExecublesSrcTreeAnalysis}
+ * 
+ * @typedef {Omit<TypicalNonExecublesSrcTreeAnalysis, "mainModulePath" | "mainFileSrcText" > } TypicalLibraryOnlySrcTreeAnalysis
+ * 
+ */
+const TypicalLibraryOnlySrcTreeAnalysis = {} ;
+
+export {
+  TypicalPossiblyExecubleAppSrcTreeAnalysis ,
+  TypicalNonExecublesSrcTreeAnalysis ,
+  TypicalLibraryOnlySrcTreeAnalysis ,
+} ;
 
 
 

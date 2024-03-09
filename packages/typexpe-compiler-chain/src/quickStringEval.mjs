@@ -26,7 +26,7 @@ const execAsync = (
   /**
    * 
    * @param {String} code
-   * @param {{ compilerOptions ?: { onEncounteringZeroCodeSrcText ?: (srcTree: (Exclude<TypicalSrcTreeRepr, { mainFileSrcText : (null) } >) ) => ({ altReturnValue: any } | null ) } }} [options]
+   * @param {{ compilerOptions ?: { onEncounteringZeroCodeSrcText ?: (srcTree: (Exclude<TypicalPossiblyExecubleAppSrcTreeAnalysis, { mainFileSrcText : (null) } >) ) => ({ altReturnValue: any } | null ) } }} [options]
    * 
    * @return {Promise<{ returnValue: any, }> }
    * @throws {NoCodeInSrcTextException }
@@ -97,7 +97,7 @@ import { getFromSnippetAsSingleFileSourceTree, } from "typexpe-compiler-fwcore/s
 
 import {
   // @ts-ignore
-  TypicalSrcTreeRepr,
+  TypicalPossiblyExecubleAppSrcTreeAnalysis,
 } from "typexpe-compiler-fwcore/src/srcFileTree.mjs";
 
 

@@ -1,14 +1,14 @@
 
 
 
-import { throwTypeError, throwAssertionError, Deferred } from "typexpe-commons/src/common_sv.mjs";
+import { throwTypeError, throwAssertionError, util, Deferred } from "typexpe-commons/src/common_sv.mjs";
 
 
 
 
 import {
   // @ts-ignore
-  TypicalSrcTreeRepr,
+  TypicalPossiblyExecubleAppSrcTreeAnalysis,
 } from "typexpe-compiler-fwcore/src/srcFileTree.mjs";
 
 import TS from "typescript" ;
@@ -24,10 +24,10 @@ import { awaitify } from "../../typexpe-jscompiler/src/tsp.mjs";
 
 
 /**
- * starts another async compiler run for given {@link TypicalSrcTreeRepr }
+ * starts another async compiler run for given {@link TypicalPossiblyExecubleAppSrcTreeAnalysis }
  * 
  */
-const startCompilerRunOnSrcTree = /** @satisfies {(x: TypicalSrcTreeRepr ) => Object } */ (x) => {
+const startCompilerRunOnSrcTree = /** @satisfies {(x: TypicalPossiblyExecubleAppSrcTreeAnalysis, options?: { rfctImpl: typeof DEFAULT_RFCTBUNDLE } ) => Object } */ (...[x, { rfctImpl = DEFAULT_RFCTBUNDLE, } = {} ]) => {
   const abortpoint = new AbortController ;
 
   const pr = /** @satisfies {Deferred<({ finished: false, } | { finished: true, })> } */ (new Deferred) ;
@@ -46,73 +46,25 @@ const startCompilerRunOnSrcTree = /** @satisfies {(x: TypicalSrcTreeRepr ) => Ob
       {
         ;
 
-        const runChunkCompileTask = () => {} ;
+        //
+        const sfm = (
+          (await util.arrayFromAsync((async function* () {
+            for (const [fPath, fContents] of Object.entries(x.srcFileMap ) )
+            {
+              yield /** @type {const } */ ([fPath, { fullSrcContents: fContents, fullSrcText: await fContents.text(), } ]) ;
+            }
+          } )()))
+          .map(/** @return {SrcFileInfAnalysis} */ ([srcPath, { fullSrcContents, fullSrcText, }]) => ({
+            srcPath,
+            fullSrcContents,
+            fullSrcText ,
+          }) )
+        ) ;
 
-        const runFinalCompileTask = () => {
-          ;
-          const sfm = (
-            Object.entries(x.srcFileMap )
-            .map(([srcPath, fullSrcText]) => ({
-              srcPath, fullSrcText ,
-            }) )
-          ) ;
-          const allCompiles = (
-            sfm
-            .map(opt => {
-              const { fullSrcText, srcPath, } = opt ;
-
-              //
-              const objCode = awaitify(fullSrcText ) ;
-              console["log"]({ srcPath, fullSrcText, objCode, } ) ;
-              const objCodeEvaluatedUnappliedPr = (
-                (async () => {
-                  try {
-                    ;
-                    return /** @type {() => ((...args: [] ) => Promise<any> ) } */ (
-                      Function(`return (async () => { ${(objCode) } ; } ) ;`)
-                    ) ;
-                  } catch (e) { return throwTypeError(`malformed bytecode: ${e }`, e ) ; }
-                } )()
-                .then(fnc => {
-                  try {
-                    return fnc() ;
-                  } catch (e) {
-                    return throwTypeError(`exception while extracting the described Function: ${e }`, e ) ;
-                  }
-                } )
-              ) ;
-
-              return ({
-                ... /** @satisfies {{ [k in keyof typeof opt]: any } } */ ({
-                  fullSrcText ,
-                  srcPath ,
-                }) ,
-                ... {
-                  //
-                  opt ,
-                  objCode ,
-                  objCodeEvaluatedUnappliedPr ,
-                }
-              }) ;
-            })
-          ) ;
-          for (const { fullSrcText, srcPath, objCode, objCodeEvaluatedUnappliedPr, } of allCompiles )
-          {
-            const objCodeEvaluatedUnappliedPr1 = (
-              objCodeEvaluatedUnappliedPr
-              .catch(z => {
-                (console["error"](`malformed bytecode ; closing the enclosing session. \n please report to our devs!`), 0 ? (console["info"](z) , setTimeout(() => throwTypeError(`exiting`, z), 0.3 * 1000 ) ) : (void 0, console["error"](z) ) ) ;
-                // throw new TypeError(`exec failed: ${z } `, z ) ;
-              } )
-            ) ;
-            (
-              objCodeEvaluatedUnappliedPr1
-              .then(fnc => fnc?.() )
-              .catch(r => (console["info"](`exception in code run`), console["info"](r) ) )
-              .then(c => (console["info"](`done with value:`, c) , setImmediate(() => process.exit(0) ) ) )
-            ) ;
-          }
-        } ;
+        const {
+          runChunkCompileTask ,
+          runFinalCompileTask ,
+        } = rfctImpl({ sfm, }) ;
 
         {
           LOOP:
@@ -151,6 +103,15 @@ const startCompilerRunOnSrcTree = /** @satisfies {(x: TypicalSrcTreeRepr ) => Ob
 } ;
 
 export { startCompilerRunOnSrcTree, } ;
+
+
+
+/**
+ * @typedef {{ srcPath: string, fullSrcContents: Blob, fullSrcText: string , }} SrcFileInfAnalysis
+ * 
+ */
+
+import DEFAULT_RFCTBUNDLE from "./asyncifyingRcft.mjs";
 
 
 
