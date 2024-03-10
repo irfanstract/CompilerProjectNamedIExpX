@@ -314,7 +314,15 @@ const awaitifyAst = (() => {
 
     return x ;
   }
-  
+
+  // (/✅ /) ;
+  // /^[Á]$/u;
+  // /^[❇️]$/u;
+  // /^[👶🏻]$/u;
+  // /^[🇯🇵]$/u;
+  // /^[👨‍👩‍👦]$/u;
+  // /^[👍]$/;
+
   /**
    * {@link asyncifyTermImplOutermost }
    * simply returns `(await nextMicrotask(), ${x } )` without even studying the operand.
