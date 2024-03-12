@@ -29,7 +29,7 @@ import { TextDocument, } from "vscode-languageserver-textdocument";
   /** @type {{ _DCM ?: any , readonly cap: ((LSP.InitializeResult["capabilities"] & {} )["workspace"] ) , readonly fileSyncType: (LSP.InitializeResult["capabilities"] & {} )["textDocumentSync"] }= } */
   let workspacingEngine ;
   /** @type {{ _ACM ?: any , readonly cap: ((LSP.InitializeResult["capabilities"] & {} )["completionProvider"] ) , readonly resolve: (x: LSP.TextDocumentPositionParams) => LSP.CompletionItem[] , }= } */
-  let completionsEngine ;
+  let editorAutocompletionsEngine ;
 
   /** @typedef {{ _S ?: any, maxNumberOfProblems: number, }} XGlobalSettings */
 
@@ -68,7 +68,7 @@ import { TextDocument, } from "vscode-languageserver-textdocument";
       }
     }
 
-    completionsEngine = {
+    editorAutocompletionsEngine = {
       cap: {
         resolveProvider: true ,
       } ,
@@ -85,26 +85,40 @@ import { TextDocument, } from "vscode-languageserver-textdocument";
       capabilities: {
         textDocumentSync: workspacingEngine?.fileSyncType ?? LSP.TextDocumentSyncKind.Incremental ,
         workspace: workspacingEngine?.cap ,
-        completionProvider: completionsEngine.cap ,
+        completionProvider: editorAutocompletionsEngine.cap ,
       } ,
     }) ;
   }) ;
 
   c.onInitialized(e => {
+    c.console.log(`underlying engine initialized`) ;
+
     if (!!workspacingEngine)
     {
       // TODO
       c.client.register(LSP.DidChangeConfigurationNotification.type , undefined ) ;
     }
+
   } ) ;
 
   c.onDidChangeConfiguration(evt => {
-    globalSettingsHld[0].update(s => (evt.settings ?? s ) ) ;
+    c.console.log(`receiving evt 'onDidChangeConfiguration'`) ;
+
+    {
+      globalSettingsHld[0].update(s => (evt.settings ?? s ) ) ;
+    }
   } ) ;
 
   const d = new TextDocuments(TextDocument) ;
 
-  d.onDidChangeContent(evt => validateDocument(evt.document ) ) ;
+  d.onDidChangeContent(evt => {
+    c.console.log(`receiving event 'onDidChangeContent'`) ;
+    
+    {
+      c.console.log(`running 'validateDocument()'`) ;
+      validateDocument(evt.document ) ;
+    }
+  } ) ;
 
   const validateDocument = /** @satisfies {(x: TextDocument) => any } */ async (d) => {
     c.sendDiagnostics({
@@ -125,7 +139,13 @@ import { TextDocument, } from "vscode-languageserver-textdocument";
   } ;
 
   c.onCompletion(evt => {
-    return completionsEngine?.resolve(evt) ;
+    c.console.log(`receiving autocompletion-list request`) ;
+
+    if (editorAutocompletionsEngine)
+    {
+      c.console.log(`delegating to 'editorAutocompletionsEngine' 'resolve' method`) ;
+      return editorAutocompletionsEngine.resolve(evt) ;
+    }
   } ) ;
   c.onCompletionResolve(e => {
     return e ;
