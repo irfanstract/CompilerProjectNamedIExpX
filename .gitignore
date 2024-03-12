@@ -55,6 +55,7 @@ yarn-error.log*
 .env.production.local
 /.vscode/*
 !/.vscode/extensions.json
+!/.vscode/launch.json
 .idea
 
 # Platform-specifiques 

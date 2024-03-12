@@ -22,11 +22,19 @@
 	"devDependencies": {
 		"@types/vscode": "^1.75.1"
 	}
+	,
+	"scripts": {
+		"vscode:prepublish": "npm run compile"
+		,
+		"compile": "tsc -b"
+		,
+		"watch": "tsc -b -w"
+	}
   ,
 	"activationEvents": [
 	]
   ,
-	"main": "./src/index.mjs"
+	"main": "./dist/index.mjs"
   ,
 	"contributes": {
 		"configuration": {
