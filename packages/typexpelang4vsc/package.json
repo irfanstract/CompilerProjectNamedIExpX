@@ -28,8 +28,6 @@
 		,
 		"compile"  			: "tsc --build --force --listEmittedFiles         ",
 		"watch"    			: "tsc --build --force --listEmittedFiles  -w     " ,
-		"compileX" 			: "tsc --build --force --listEmittedFiles --verbose ",
-		"compileX0" 			: "tsc --listEmittedFiles --rootDir src/",
 		"compileAndTest": "npm run compile  && node ./dist/index.mjs "
 	}
   ,

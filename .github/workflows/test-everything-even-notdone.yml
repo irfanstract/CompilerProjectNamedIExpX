@@ -1,4 +1,4 @@
-name: Test All
+name: Test Everything Including Stuffs Still Negative
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Test All
+    - name: Test Everything Including Stuffs Still Negative
       run: |
         npm ci
         # npm install
@@ -32,6 +32,9 @@ jobs:
         cd ../../
         cd packages/typexpe-compiler-chain
         npm run test
+        cd ../../
+        cd packages/typexpelang4svc
+        npm run compileAndTest
         cd ../../
 
 
