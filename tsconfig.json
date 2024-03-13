@@ -6,25 +6,26 @@
      */
 
     "module": "NodeNext",
+
+    /* `noEmit` and `isolatedModules` . enabling `noEmit` implies assumptions of being run in direct exec engine like Deno, Node, TS-Node, Vite, Next */
+    
+    "noEmit": true /* using TS-Node or ESBuild, never the CLI `tsc` - https://github.com/microsoft/TypeScript/pull/51669 */ ,
+    "isolatedModules": true,
+
+    /* `esModuleInterop` and `jsx` */
+    
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": false,
-    // "jsx": "react-jsx" ,
 
 
     /* 
-     * BASE PATHS - 
-     * all these generally no effect, 
-     * EXCEPT IF USING PREAMBLES LIKE `tsconfig-paths`, IN WHICH CASE AFFECTS LINKAGE
+     * TYPECHECKER-ONLY PATHS
+     * (EXCLUSIVELY IF USING PREAMBLES LIKE `tsconfig-paths`, IN WHICH CASE AFFECTS LINKAGE )
      */
     
     // "baseUrl": ".",
     "moduleResolution": "NodeNext" /* https://github.com/microsoft/TypeScript/pull/51669 */,
     "forceConsistentCasingInFileNames": true,
-
-
-    /* 
-     * SETTINGS WHICH DOESN'T AFFECT LINKAGE !!!
-     */
     
     /* post-vendoring paths settings */
 
@@ -34,12 +35,19 @@
     "allowImportingTsExtensions": true,
     "allowJs": true,
 
+
+
+    /* 
+     * SETTINGS WHICH DOESN'T AFFECT LINKAGE !!!
+     */
+    
     /* these three does not affect linkage, yet does affect generated code */
+
+    // "preserveValueImports": true,
+    // "preserveConstEnums": false,
 
     "target": "ESNext",
     "useDefineForClassFields": true,
-    "isolatedModules": true,
-    "noEmit": true /* using TS-Node or ESBuild, never the CLI `tsc` - https://github.com/microsoft/TypeScript/pull/51669 */ ,
     
     /* these three is at the heart of typechecking */
 
@@ -63,7 +71,11 @@
     "skipLibCheck": true,
     "checkJs": false,
     "incremental": true,
+
+    /* etc */
+
     "jsx": "preserve",
+    // "jsx": "react-jsx" ,
     "plugins": [
       {
         "name": "next"
@@ -73,18 +85,21 @@
     
     /* https://stackoverflow.com/a/57273280 . */
     "paths": {
-      "typexpe-commons/*": ["./packages/typexpe-commons/*"] ,
+      "typexpe-commons/*"        : ["./packages/typexpe-commons/*"] ,
       "typexpe-compiler-fwcore/*": ["./packages/typexpe-compiler-fwcore/*"] ,
-      "typexpe-compiler-chain/*": ["./packages/typexpe-compiler-chain/*"] ,
-      "typexpe-typesystem/*": ["./packages/typexpe-typesystem/*"] ,
+      "typexpe-compiler-chain/*" : ["./packages/typexpe-compiler-chain/*"] ,
+      "typexpe-typesystem/*"     : ["./packages/typexpe-typesystem/*"] ,
     } ,
+    
+    // "outDir": "dist", /* didn't work as expected */
+    "declaration": true ,
     
     
   },
   "include": [
     "packages" ,
-    "src" ,
-    ".next/types/**/*.ts" ,
+    // "src" ,
+    // ".next/types/**/*.ts" ,
   ],
   "references": [
   ] ,
@@ -97,6 +112,8 @@
   } ,
   "exclude": [
     "node_modules" ,
+    "**/dist" ,
+    "**/dist/**/*" ,
   ],
 
 }

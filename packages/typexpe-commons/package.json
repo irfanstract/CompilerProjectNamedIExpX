@@ -20,4 +20,10 @@
    "scripts": {
       "test": "npx mocha --recursive "
    }
+   ,
+   "exports": {
+      "./src/*": "./src/*"
+      ,
+      "./msrc/*": "./src/*"
+   }
 }

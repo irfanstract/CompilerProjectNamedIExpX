@@ -45,8 +45,17 @@
   "include": [
     "src" ,
   ],
+  // "files": [
+  //   "src/index.mts" ,
+  // ],
+  "references": [
+    // { "path": "typexpe-commons" } ,
+    { "path": "../../packages/typexpe-commons" } ,
+  ],
   "exclude": [
     "node_modules" ,
+    // "packages/typexpe-commons" ,
+    // "../../packages/typexpe-commons/**/*" ,
     ".vscode-test" ,
   ],
 }

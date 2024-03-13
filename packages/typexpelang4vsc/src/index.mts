@@ -5,6 +5,10 @@ import { util } from "typexpe-commons/src/common_sv.mjs";
 
 import Path from "node:path" ;
 
+;
+interface XRunAndDebugConfig extends XRunAndDebugProps<NodeModule> {}
+type XRunAndDebugProps<out T> = { [k in keyof { run: 1, debug: 1, } ]: T }
+
 import {
   ExtensionContext,
   workspace,
@@ -24,6 +28,9 @@ import {
 
 
 let client: LanguageClient | undefined ;
+
+/** a frivolous {@link util.assert `assert` } merely to ensure the import not elided so we know A-O-T any problems with the build */
+util.assert(String(client) === "undefined" ) ;
 
 
 
@@ -69,7 +76,7 @@ export const activate = (context: ExtensionContext) => {
   }) ;
 
     // The server is implemented in node
-    let serverModule = (() => {
+    let serverModule = ((): XRunAndDebugConfig => {
       const path = (
         context.asAbsolutePath((
           Path.join('..', '..', Path.join("packages", "typexpe-cli", "src", "lspr-main.mjs", ), )
@@ -80,7 +87,7 @@ export const activate = (context: ExtensionContext) => {
       return {
         run  : { module: path, args: [], transport: TransportKind.ipc, options: { execArgv: [ ], }, } ,
         debug: { module: path, args: [], transport: TransportKind.ipc, options: { execArgv: ['--nolazy', '--inspect=6009', ], }, } ,
-      } satisfies { [k in keyof { run: 1, debug: 1, } ]: NodeModule } ;
+      } ;
     })() ;
 
     // If the extension is launched in debug mode then the debug server options are used

@@ -3,5 +3,19 @@
   "compilerOptions": {
     "checkJs": true,
     "allowSyntheticDefaultImports": true ,
+    "outDir": "dist",
+
+    /* https://www.typescriptlang.org/docs/handbook/project-references.html */
+    "composite": true ,
+    "noEmit": false ,
+    "allowImportingTsExtensions": false ,
+    /* https://stackoverflow.com/a/61513685 */
+    "rootDir": "src" ,
   },
+  "include": [
+    "src" ,
+  ],
+  // "exclude": [
+  //   "src/**/*" ,
+  // ],
 }
