@@ -19,6 +19,12 @@ const stdMainModuleUrl = "app-main:" ;
 
 export { stdMainModuleUrl } ;
 
+/**
+ * {@link XAppUrl}
+ * @typedef {string & { as_XAppUrl ?: any } } XAppUrl
+ */
+export const XAppUrl = {} ;
+
 
 /**
  * a SrcTree describing
@@ -42,7 +48,7 @@ export { getFromSnippetAsSingleFileSourceTree } ;
  * {@link getFromUrlToStringMapAsSourceTree }. returns {@link TypicalPossiblyExecubleAppSrcTreeAnalysis }.
  * 
  */
-const getFromUrlToStringMapAsSourceTree = /** @satisfies {(srcs: Readonly<{ [k: String]: String }>, config: GFTSMConfig ) => Object } */ ((srcs, config) =>
+const getFromUrlToStringMapAsSourceTree = /** @satisfies {(srcs: Readonly<{ [k: XAppUrl]: String }>, config: GFTSMConfig ) => Object } */ ((srcs, config) =>
 {
   const mainModulePath = config.mainModulePath ;
 
@@ -69,9 +75,10 @@ const getFromUrlToStringMapAsSourceTree = /** @satisfies {(srcs: Readonly<{ [k: 
 export { getFromUrlToStringMapAsSourceTree } ;
 
 /**
- * @typedef {Readonly<{ mainModulePath ?: String, }>} GFTSMConfig
+ * @typedef {Readonly<{ mainModulePath ?: XAppUrl, }>} GFTSMConfig
  * 
  */
+export const GFTSMConfig = {} ;
 
 /**
  * FOR DEVS:
@@ -80,32 +87,32 @@ export { getFromUrlToStringMapAsSourceTree } ;
  */
 
 /**
+ * 
  * @typedef {ReturnType<typeof getFromSnippetAsSingleFileSourceTree > } TypicalPossiblyExecubleAppSrcTreeAnalysis
  * 
+ * @see TypicalPossiblyExecubleAppSrcTreeAnalysis
  */
-const TypicalPossiblyExecubleAppSrcTreeAnalysis = {} ;
+export const TypicalPossiblyExecubleAppSrcTreeAnalysis = {} ;
 
 /**
  * selection of {@link TypicalPossiblyExecubleAppSrcTreeAnalysis } which sets these fields to `null`
  * 
  * @typedef {Exclude<TypicalPossiblyExecubleAppSrcTreeAnalysis, { mainModulePath : {} } > } TypicalNonExecublesSrcTreeAnalysis
  * 
+ * @see TypicalNonExecublesSrcTreeAnalysis
+ * 
  */
-const TypicalNonExecublesSrcTreeAnalysis = {} ;
+export const TypicalNonExecublesSrcTreeAnalysis = {} ;
 
 /**
  * a subset of fields of {@link TypicalNonExecublesSrcTreeAnalysis}
  * 
  * @typedef {Omit<TypicalNonExecublesSrcTreeAnalysis, "mainModulePath" | "mainFileSrcText" > } TypicalLibraryOnlySrcTreeAnalysis
  * 
+ * @see TypicalLibraryOnlySrcTreeAnalysis
+ * 
  */
-const TypicalLibraryOnlySrcTreeAnalysis = {} ;
-
-export {
-  TypicalPossiblyExecubleAppSrcTreeAnalysis ,
-  TypicalNonExecublesSrcTreeAnalysis ,
-  TypicalLibraryOnlySrcTreeAnalysis ,
-} ;
+export const TypicalLibraryOnlySrcTreeAnalysis = {} ;
 
 
 

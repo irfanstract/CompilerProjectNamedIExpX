@@ -6,41 +6,42 @@ import { throwTypeError, throwAssertionError, util, Deferred } from "typexpe-com
 
 
 
+
+
 import {
-  // @ts-ignore
   TypicalPossiblyExecubleAppSrcTreeAnalysis,
+  XAppUrl ,
 } from "typexpe-compiler-fwcore/src/srcFileTree.mjs";
+
+import {
+  SrcFileInfDecodeAnalysis,
+} from "typexpe-compiler-fwcore/src/srcFileTreePreload.mjs";
+
+import {
+  ChunkCallableCompileTask,
+  ChunkCallableCompiledLang ,
+  RFCTBUNDLE,
+} from "typexpe-compiler-fwcore/src/compilerThreads.mjs";
+
+
+
 
 import TS from "typescript" ;
 
-
-
 import { awaitify } from "../../typexpe-jscompiler/src/tsp.mjs";
 
-
-
-
-
-
-
-
-
-/**
- * @typedef {import("./compilerJob.mjs").SrcFileInfAnalysis } SrcFileInfAnalysis
- * 
- */
 
 /**
  * internal use.
  * 
  */
-const DEFAULT_RFCTBUNDLE = /** @satisfies {(options: { sfm: readonly SrcFileInfAnalysis[] } ) => object } */ ({ sfm, }) => {
+const DEFAULT_RFCTBUNDLE = /** @satisfies {ChunkCallableCompiledLang } */ ({ sfm, }) => {
   ;
   
   const runChunkCompileTask = () => {} ;
 
   //
-  const RFCT = /** @satisfies {(options: { sfm: readonly SrcFileInfAnalysis[] } ) => Object } */ ({ sfm, }) => {
+  const RFCT = /** @satisfies {(options: { sfm: readonly SrcFileInfDecodeAnalysis[] } ) => Object } */ ({ sfm, }) => {
     ;
     const allCompiles = (
       sfm
@@ -68,7 +69,7 @@ const DEFAULT_RFCTBUNDLE = /** @satisfies {(options: { sfm: readonly SrcFileInfA
           } )
         ) ;
 
-        return /** @satisfies {SrcFileInfAnalysis } */ ({
+        return /** @satisfies {SrcFileInfDecodeAnalysis } */ ({
           fullSrcContents ,
           fullSrcText ,
           srcPath ,
@@ -113,11 +114,11 @@ const DEFAULT_RFCTBUNDLE = /** @satisfies {(options: { sfm: readonly SrcFileInfA
     ;
   } ;
 
-  return {
+  return RFCTBUNDLE({
     //
     runChunkCompileTask ,
     runFinalCompileTask ,
-  } ;
+  }) ;
 } ;
 
 

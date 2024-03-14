@@ -5,17 +5,15 @@ import { throwTypeError, throwAssertionError, util, Deferred } from "typexpe-com
 
 
 
+import {
+  newAbortPointCtx,
+  expandAbortSignalObjAsCtx,
+} from "typexpe-compiler-fwcore/src/spclControlFlowAbortCtx.mjs";
 
 import {
-  // @ts-ignore
   TypicalPossiblyExecubleAppSrcTreeAnalysis,
+  XAppUrl,
 } from "typexpe-compiler-fwcore/src/srcFileTree.mjs";
-
-import TS from "typescript" ;
-
-
-
-import { awaitify } from "../../typexpe-jscompiler/src/tsp.mjs";
 
 
 
@@ -27,68 +25,73 @@ import { awaitify } from "../../typexpe-jscompiler/src/tsp.mjs";
  * starts another async compiler run for given {@link TypicalPossiblyExecubleAppSrcTreeAnalysis }
  * 
  */
-const startCompilerRunOnSrcTree = /** @satisfies {(x: TypicalPossiblyExecubleAppSrcTreeAnalysis, options?: { rfctImpl: typeof DEFAULT_RFCTBUNDLE } ) => Object } */ (...[x, { rfctImpl = DEFAULT_RFCTBUNDLE, } = {} ]) => {
-  const abortpoint = new AbortController ;
+const startCompilerRunOnSrcTree = /** @satisfies {(x: TypicalPossiblyExecubleAppSrcTreeAnalysis, options?: { rfctImpl: RfctImpl } ) => Object } */ (...[x, { rfctImpl = DEFAULT_RFCTBUNDLE, } = {} ]) => {
+  ;
+
+  const {
+    abortpoint,
+    CANCELLED ,
+    NEVER_UNLESS_CANCELLED ,
+  } = newAbortPointCtx() ;
 
   const pr = /** @satisfies {Deferred<({ finished: false, } | { finished: true, })> } */ (new Deferred) ;
+  
+  const srcCplxAnalyticTask = (
+    startSrcCplxAnalyticTask(x, { abortpoint, rfctImpl, } )
+  ) ;
 
   (async () => {
     ;
 
-    const enlog = /** @satisfies {(...args: [String | Error, ...any ]) => any } */ (s, ...a) => console["log"] ((s instanceof Error) ? s : `[compiler] ${s }`, ...a ) ;
-
-    /** */
-    let finished = false ;
+    //
+    const { enlog, } = await srcCplxAnalyticTask ;
 
     try {
-      ;
-      R :
-      {
+      /** */
+      let finished = false ;
+  
+      try {
         ;
-
-        //
-        const sfm = (
-          (await util.arrayFromAsync((async function* () {
-            for (const [fPath, fContents] of Object.entries(x.srcFileMap ) )
-            {
-              yield /** @type {const } */ ([fPath, { fullSrcContents: fContents, fullSrcText: await fContents.text(), } ]) ;
-            }
-          } )()))
-          .map(/** @return {SrcFileInfAnalysis} */ ([srcPath, { fullSrcContents, fullSrcText, }]) => ({
-            srcPath,
-            fullSrcContents,
-            fullSrcText ,
-          }) )
-        ) ;
-
-        const {
-          runChunkCompileTask ,
-          runFinalCompileTask ,
-        } = rfctImpl({ sfm, }) ;
-
+        R :
         {
-          LOOP:
-          for (const _ of "01" ) {
-            if (abortpoint.signal.aborted) {
-              ;
-              enlog(`receiving abort-instru ; terminating early`) ;
-              break R ;
-            }
-            await ((t) => new Promise(resolve => setTimeout(resolve, t ) ) )(1.8 * 1000 ) ;
-            enlog(`still compiling.`) ;
-            runChunkCompileTask() ;
-          }
+          ;
+          
+          //
+          const { srcsDecoded, } = await srcCplxAnalyticTask ;
 
-          runFinalCompileTask() ;
+          const {
+            runChunkCompileTask ,
+            runFinalCompileTask ,
+          } = rfctImpl({ sfm: srcsDecoded, }) ;
+  
+          {
+            LOOP:
+            for (const _ of "01" ) {
+              if (abortpoint.signal.aborted) {
+                ;
+                enlog(`receiving abort-instru ; terminating early`) ;
+                break R ;
+              }
+              await ((t) => new Promise(resolve => setTimeout(resolve, t ) ) )(1.8 * 1000 ) ;
+              enlog(`still compiling.`) ;
+              runChunkCompileTask() ;
+            }
+  
+            runFinalCompileTask() ;
+          }
+    
+          (finished = true) , enlog(`successful.`) ;
         }
-  
-        (finished = true) , enlog(`successful.`) ;
+    
+      } finally {
+        pr.resolve({ finished, }) ;
       }
-  
-      /** should log "terminated" even when successful */
+    }
+    finally {
+      ;
+      
+      /** by design we shall log "terminated" even when successful */
       enlog(`terminated.`) ;
-    } finally {
-      pr.resolve({ finished, }) ;
     }
   } )() ;
 
@@ -104,12 +107,67 @@ const startCompilerRunOnSrcTree = /** @satisfies {(x: TypicalPossiblyExecubleApp
 
 export { startCompilerRunOnSrcTree, } ;
 
+import { SrcFileInfDecodeAnalysis, } from "typexpe-compiler-fwcore/src/srcFileTreePreload.mjs";
+export { SrcFileInfDecodeAnalysis, } ;
 
+import {
+  ChunkCallableCompileTask,
+  ChunkCallableCompiledLang ,
+} from "typexpe-compiler-fwcore/src/compilerThreads.mjs";
 
 /**
- * @typedef {{ srcPath: string, fullSrcContents: Blob, fullSrcText: string , }} SrcFileInfAnalysis
+ * @typedef {ChunkCallableCompiledLang } RfctImpl
  * 
  */
+
+// export { ChunkCallableCompileTask, } ;
+
+/** @satisfies {(x: TypicalPossiblyExecubleAppSrcTreeAnalysis, options: { abortpoint: AbortController , rfctImpl: RfctImpl } ) => Object } */
+const startSrcCplxAnalyticTask = function (...[x, { abortpoint, rfctImpl, } ])
+{
+  return (
+    (async () => {
+      ;
+      
+      const enlog = /** @satisfies {(...args: [String | Error, ...any ]) => any } */ (s, ...a) => console["log"] ((s instanceof Error) ? s : `[compiler] ${s }`, ...a ) ;
+
+      const {
+        NEVER_UNLESS_CANCELLED,
+      } = expandAbortSignalObjAsCtx(abortpoint) ;
+
+      /**
+       * read-and-decode all the files' contents (ie decode eg UTF-8)
+       * 
+       */
+      const srcsDecoded = (
+        (await util.arrayFromAsync((async function* () {
+          for (const [fPath, fContents] of Object.entries(x.srcFileMap ) )
+          {
+            const fullSrcText = await Promise.race([NEVER_UNLESS_CANCELLED, fContents.text() ]) ;
+
+            yield /** @type {const } */ ([fPath, { fullSrcContents: fContents, fullSrcText: fullSrcText, } ]) ;
+          }
+        } )()))
+        .map(/** @return {SrcFileInfDecodeAnalysis} */ ([srcPath, { fullSrcContents, fullSrcText, }]) => ({
+          srcPath,
+          fullSrcContents,
+          fullSrcText ,
+        }) )
+      ) ;
+
+      return {
+        //
+        enlog ,
+        srcsDecoded: (
+          srcsDecoded
+        ) ,
+      } ;
+    } )()
+  ) ;
+} ;
+
+
+
 
 import DEFAULT_RFCTBUNDLE from "./asyncifyingRcft.mjs";
 

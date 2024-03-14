@@ -167,10 +167,18 @@ export const healPseudoCurriedFunctionRef = /** @type {(x: TS.Expression, option
     const mainVarargsSpreadShape = (
       TS.factory.createSpreadElement(TS.factory.createIdentifier(argsBName ) )
     ) ;
-    
-    if (asConstructor === false)
+
+    if ((asConstructor === false ) && isFieldOrItemValueAccess(calleeRef) )
     {
-      if (isFieldOrItemValueAccess(calleeRef) )
+      /**
+       * return
+       * IIFE `((receiver) => (...actualArgs) => receiver.meth(...actualArgs) )(<actualReceiver> )`
+       * .
+       * this placement/positioning of `<actualReceiver>`
+       * is necessary since the receiving term/expr could synchronously involve `yield` or `await`
+       * .
+       * 
+       */
       {
         const [actualReceiverRef, kRef ] = getFieldOrItemValueAccessElements(calleeRef) ;
   
@@ -198,37 +206,21 @@ export const healPseudoCurriedFunctionRef = /** @type {(x: TS.Expression, option
         ) ;
       }
     }
+
+    /**
+     * at this point {@link calleeRef} can only be something safely directly movable
+     * (hopefully)
+     */
+    if (asConstructor === false ) { return calleeRef ; }
     
+    /**
+     * nothing can and needs to be done on {@link Reflect.construct *constructor*s } wrt receiver(s).
+     */
+    if (asConstructor === true ) { return calleeRef ; }
+
     return (
       //
-      (asConstructor === true) ?
-      calleeRef
-      :
-      (asConstructor === false) ?
-      (
-        TS.factory.createArrowFunction([
-          ...(inAwaitCtx ? [TS.factory.createModifier(TS.SyntaxKind.AsyncKeyword) ] : [] )
-          ,
-          ...(inGenerator ? [ (
-            // TODO
-            throwTypeError(`TODO`)
-          ) ] : [] )
-          ,
-        ], undefined, [mainVarargsDeclarShape] , undefined, undefined, (
-          (() => {
-            const mainExpr = (
-              TS.factory.createCallExpression(calleeRef, undefined, [mainVarargsSpreadShape] )
-            ) ;
-            /** @type {TS.Expression} */ let e = mainExpr ;
-            0 && (e = TS.factory.createPropertyAccessExpression(TS.factory.createArrayLiteralExpression([e]) , "0" ) ) ;
-            0 && (inAwaitCtx  && (e = TS.factory.createAwaitExpression(e) ) ) ;
-            0 && (inGenerator && (e = TS.factory.createYieldExpression(TS.factory.createToken(TS.SyntaxKind.AsteriskToken) , e) ) ) ;
-            return e ;
-          } )()
-        ) )
-      )
-      :
-      throwTypeError(`. ${JSON.stringify({ asConstructor, calleeRef }) }` )
+      (1 ? throwTypeError(`. ${JSON.stringify({ asConstructor, calleeRef }) }` ) : calleeRef )
     ) ;
   }
 } ;
